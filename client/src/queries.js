@@ -1,12 +1,14 @@
 import gql from 'graphql-tag';
 
-const userFields = `
-  id
-  username
-  displayName
-  photo
-  email
-  bio
+const userFields = gql`
+  fragment userFields on User {
+    id
+    username
+    displayName
+    photo
+    email
+    bio
+  }
 `
 
 export const allTweetsQuery = gql`
@@ -16,26 +18,28 @@ export const allTweetsQuery = gql`
       createdAt
       tweet
       from {
-        ${userFields}
+        ...userFields
       }
     }
   }
+  ${userFields}
 `;
 
 export const userQuery = gql`
   query getUser($username: String!) {
     user(username: $username) {
-      ${userFields}
+      ...userFields
       tweets {
         id,
         tweet,
         createdAt
         from {
-          ${userFields}
+          ...userFields
         }
       }
     }
   }
+  ${userFields}
 `;
 
 export const createTweetMutation = gql`
@@ -45,8 +49,9 @@ export const createTweetMutation = gql`
       tweet
       createdAt
       from {
-        ${userFields}
+        ...userFields
       }
     }
   }
+  ${userFields}
 `;
