@@ -14,6 +14,7 @@ const currentUserQuery = gql`
       displayName
       email
       bio
+      photo
     }
   }
 `

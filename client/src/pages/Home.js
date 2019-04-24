@@ -75,7 +75,6 @@ const Home = ({ loading, me }) => {
           />
         }}
       </Query>
-
     </Container>
   );
 };
