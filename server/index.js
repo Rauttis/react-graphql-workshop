@@ -50,13 +50,7 @@ const typeDefs = gql`
 const resolvers = {
   Query: {
     user: (_, {username}) => userDb.getUserByUsername(username),
-    users: async (_, __, {user: loggedInUser}) => {
-      const users = await userDb.getAllUsers()
-      return users.map(user => ({
-        ...user,
-        email: user.username === loggedInUser ? user.email : null
-      }))
-    },
+    users: () => userDb.getAllUsers(),
     tweet: (_, {id}) => tweetDb.getTweetById(id),
     tweets: () => tweetDb.getAllTweets(),
     me: (_, __, {user}) => userDb.getUserByUsername(user)
@@ -70,6 +64,7 @@ const resolvers = {
   },
   User: {
     tweets: ({username}) => tweetDb.getTweetsFrom(username),
+    email: ({username, email}, _, {user}) => user === username ? email : null
   },
   Tweet: {
     from: ({from}) => userDb.getUserByUsername(from)
