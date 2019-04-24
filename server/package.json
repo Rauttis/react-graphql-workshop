@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "apollo-server": "^2.4.8",
+    "cuid": "^2.1.6",
     "graphql": "^14.2.1"
   },
   "devDependencies": {
