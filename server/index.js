@@ -9,6 +9,23 @@ const typeDefs = gql`
     tweet(id: ID!): Tweet
     tweets: [Tweet]!
   }
+  type Mutation {
+    createUser(
+      username: String!,
+      displayName: String,
+      bio: String,
+      photo: String
+    ): User
+    updateUser(
+      username: String!,
+      displayName: String,
+      bio: String,
+      photo: String
+    ): User
+    deleteUser(id: ID!): User
+    createTweet(tweet: String!, from: String!): Tweet
+    deleteTweet(id: ID!): Tweet
+  }
   type User {
     id: ID!
     createdAt: String!
@@ -37,6 +54,13 @@ const resolvers = {
   },
   User: {
     tweets: ({username}) => tweetDb.getTweetsFrom(username),
+  },
+  Mutation: {
+    createUser: (_, args) => userDb.createUser(args),
+    updateUser: (_, args) => userDb.updateUser(args),
+    deleteUser: (_, id) => userDb.deleteUser(id),
+    createTweet: (_, {tweet, from}) => tweetDb.createTweet({tweet, from}),
+    deleteTweet: (_, id) => tweetDb.deleteTweet(id)
   }
 }
 
