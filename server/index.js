@@ -64,9 +64,9 @@ const resolvers = {
   Mutation: {
     createUser: (_, args) => userDb.createUser(args),
     updateUser: (_, args) => userDb.updateUser(args),
-    deleteUser: (_, id) => userDb.deleteUser(id),
+    deleteUser: (_, {id}) => userDb.deleteUser({id}),
     createTweet: (_, {tweet, from}) => tweetDb.createTweet({tweet, from}),
-    deleteTweet: (_, id) => tweetDb.deleteTweet(id)
+    deleteTweet: (_, {id}) => tweetDb.deleteTweet({id})
   },
   User: {
     tweets: ({username}) => tweetDb.getTweetsFrom(username),
