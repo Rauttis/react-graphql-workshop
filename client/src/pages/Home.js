@@ -7,8 +7,8 @@ import Input from '../components/Input';
 import Tweets from '../components/Tweets';
 import Loading from '../components/Loading'
 
-import { Query } from 'react-apollo';
-import { allTweetsQuery } from '../queries';
+import { Query, Mutation } from 'react-apollo';
+import { allTweetsQuery, userQuery, createTweetMutation } from '../queries';
 
 const Form = styled.form`
   display: flex;
@@ -20,25 +20,39 @@ const Home = ({ loading, me }) => {
   return (
     <Container>
       <Heading>Home</Heading>
-      <Form
-        onSubmit={event => {
-          event.preventDefault();
-        }}
+      <Mutation
+        mutation={createTweetMutation}
+        variables={{ tweet, from: me.username }}
+        refetchQueries={[
+          { query: allTweetsQuery },
+          { query: userQuery, variables: { username: me.username } },
+        ]}
+        awaitRefetchQueries
       >
-        <Input
-          onChange={event => setTweet(event.target.value)}
-          placeholder="What's happening?"
-          value={tweet}
-        />
-        <Button primary disabled={loading || tweet === ''}>
-          Tweet
-        </Button>
-      </Form>
+        {(createTweet, { data }) => (
+          <Form
+            onSubmit={event => {
+              event.preventDefault();
+              createTweet(tweet)
+              setTweet('')
+            }}
+          >
+            <Input
+              onChange={event => setTweet(event.target.value)}
+              placeholder="What's happening?"
+              value={tweet}
+            />
+            <Button primary disabled={loading || tweet === ''}>
+              Tweet
+          </Button>
+          </Form>
+        )}
+      </Mutation>
       <Query query={allTweetsQuery}>
         {({ data, loading: tweetsLoading, error }) => {
           if (error) return <h3>Error</h3>
           if (tweetsLoading) return <Loading />
-          const {tweets} = data
+          const { tweets } = data
           return <Tweets loading={loading} me={me} tweets={tweets} />
         }}
       </Query>

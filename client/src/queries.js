@@ -40,3 +40,19 @@ export const userQuery = gql`
     bio
   }
 `;
+
+export const createTweetMutation = gql`
+  mutation createTweet($tweet: String!, $from: String!) {
+    createTweet(tweet: $tweet, from: $from) {
+      id
+      tweet
+      createdAt
+      from {
+        id
+        username
+        displayName
+        photo
+      }
+    }
+  }
+`;
