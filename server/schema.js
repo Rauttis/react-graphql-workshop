@@ -27,6 +27,10 @@ module.exports = gql`
     deleteTweet(id: ID!): Tweet
   }
 
+  type Subscription {
+    tweetAdded: Tweet
+  }
+
   type User {
     id: ID!
     createdAt: String!

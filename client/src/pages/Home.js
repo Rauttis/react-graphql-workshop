@@ -8,7 +8,12 @@ import Tweets from '../components/Tweets';
 import Loading from '../components/Loading'
 
 import { Query, Mutation } from 'react-apollo';
-import { allTweetsQuery, userQuery, createTweetMutation } from '../queries';
+import {
+  allTweetsQuery,
+  userQuery,
+  createTweetMutation,
+  tweetAddedSubscription
+} from '../queries';
 
 const Form = styled.form`
   display: flex;
@@ -49,11 +54,25 @@ const Home = ({ loading, me }) => {
         )}
       </Mutation>
       <Query query={allTweetsQuery}>
-        {({ data, loading: tweetsLoading, error }) => {
+        {({ data, loading: tweetsLoading, error, subscribeToMore }) => {
           if (error) return <h3>Error</h3>
           if (tweetsLoading) return <Loading />
           const { tweets } = data
-          return <Tweets loading={loading} me={me} tweets={tweets} />
+          return <Tweets
+            loading={loading}
+            me={me}
+            tweets={tweets}
+            subscribeToNewTweets={() =>
+              subscribeToMore({
+                document: tweetAddedSubscription,
+                updateQuery: (prev, { subscriptionData }) => {
+                  if (!subscriptionData.data) return prev;
+                  const {tweetAdded} = subscriptionData.data
+                  return { tweets: [tweetAdded, ...prev.tweets] }
+                }
+              })
+            }
+          />
         }}
       </Query>
 

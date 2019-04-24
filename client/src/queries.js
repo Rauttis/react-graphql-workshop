@@ -6,7 +6,6 @@ const userFields = gql`
     username
     displayName
     photo
-    email
     bio
   }
 `
@@ -55,3 +54,17 @@ export const createTweetMutation = gql`
   }
   ${userFields}
 `;
+
+export const tweetAddedSubscription = gql`
+  subscription onTweetAdded {
+    tweetAdded {
+      id
+      tweet
+      createdAt
+      from {
+        ...userFields
+      }
+    }
+  }
+  ${userFields}
+`

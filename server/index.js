@@ -1,8 +1,10 @@
-const { ApolloServer } = require('apollo-server')
+const { ApolloServer, PubSub } = require('apollo-server')
 const jwt = require('jsonwebtoken')
 const userDb = require('./db/users')
 const tweetDb = require('./db/tweets')
 const typeDefs = require('./schema')
+
+const pubsub = new PubSub();
 
 // (obj, args, context, info) => result
 const resolvers = {
@@ -17,8 +19,17 @@ const resolvers = {
     createUser: (_, args) => userDb.createUser(args),
     updateUser: (_, args) => userDb.updateUser(args),
     deleteUser: (_, {id}) => userDb.deleteUser({id}),
-    createTweet: (_, {tweet, from}) => tweetDb.createTweet({tweet, from}),
+    createTweet: async (_, {tweet, from}) => {
+      const newTweet = await tweetDb.createTweet({tweet, from})
+      pubsub.publish('TWEET_ADDED', { tweetAdded: newTweet })
+      return newTweet
+    },
     deleteTweet: (_, {id}) => tweetDb.deleteTweet({id})
+  },
+  Subscription: {
+    tweetAdded: {
+      subscribe: () => pubsub.asyncIterator(['TWEET_ADDED']),
+    },
   },
   User: {
     tweets: ({username}) => tweetDb.getTweetsFrom(username),
@@ -33,6 +44,7 @@ const server = new ApolloServer({
   resolvers,
   typeDefs,
   context: ({req}) => {
+    if (!req) return null
     const {authorization = ''} = req.headers
     const token = authorization.split(' ')[1]
     if (!token) return null
