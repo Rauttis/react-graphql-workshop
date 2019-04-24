@@ -1,4 +1,5 @@
 const { ApolloServer, gql } = require('apollo-server')
+const jwt = require('jsonwebtoken')
 const userDb = require('./db/users')
 const tweetDb = require('./db/tweets')
 
@@ -8,6 +9,7 @@ const typeDefs = gql`
     users: [User]!
     tweet(id: ID!): Tweet
     tweets: [Tweet]!
+    me: User
   }
   type Mutation {
     createUser(
@@ -48,12 +50,16 @@ const typeDefs = gql`
 const resolvers = {
   Query: {
     user: (_, {username}) => userDb.getUserByUsername(username),
-    users: () => userDb.getAllUsers(),
+    users: async (_, __, {user: loggedInUser}) => {
+      const users = await userDb.getAllUsers()
+      return users.map(user => ({
+        ...user,
+        email: user.username === loggedInUser ? user.email : null
+      }))
+    },
     tweet: (_, {id}) => tweetDb.getTweetById(id),
     tweets: () => tweetDb.getAllTweets(),
-  },
-  User: {
-    tweets: ({username}) => tweetDb.getTweetsFrom(username),
+    me: (_, __, {user}) => userDb.getUserByUsername(user)
   },
   Mutation: {
     createUser: (_, args) => userDb.createUser(args),
@@ -61,9 +67,25 @@ const resolvers = {
     deleteUser: (_, id) => userDb.deleteUser(id),
     createTweet: (_, {tweet, from}) => tweetDb.createTweet({tweet, from}),
     deleteTweet: (_, id) => tweetDb.deleteTweet(id)
+  },
+  User: {
+    tweets: ({username}) => tweetDb.getTweetsFrom(username),
+  },
+  Tweet: {
+    from: ({from}) => userDb.getUserByUsername(from)
   }
 }
 
-const server = new ApolloServer({ resolvers, typeDefs })
+const server = new ApolloServer({
+  resolvers,
+  typeDefs,
+  context: ({req}) => {
+    const {authorization = ''} = req.headers
+    const token = authorization.split(' ')[1]
+    if (!token) return null
+    const {user} = jwt.verify(token, 'whateversecret')
+    return {user}
+  }
+})
 
 server.listen().then(server => console.log(`Server started at ${server.url}`))
