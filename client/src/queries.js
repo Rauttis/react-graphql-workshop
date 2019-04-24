@@ -20,24 +20,23 @@ export const allTweetsQuery = gql`
 export const userQuery = gql`
   query getUser($username: String!) {
     user(username: $username) {
-      id,
-      username
-      displayName
-      photo
-      email
-      bio
+      ...userFields
       tweets {
         id,
         tweet,
         createdAt
         from {
-          id
-          username
-          displayName
-          photo
-          email
+          ...userFields
         }
       }
     }
+  }
+  fragment userFields on User {
+    id
+    username
+    displayName
+    photo
+    email
+    bio
   }
 `;
